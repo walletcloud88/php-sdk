@@ -17,8 +17,7 @@ class Common{
         $this->config = $config;
     }
 
-    private function getSignString($data)
-    {
+    private function getSignString($data){
         unset($data['sign']);
         ksort($data);
         reset($data);
@@ -30,8 +29,7 @@ class Common{
         return implode('&', $pairs);
     }
 
-    private function arrayToString($data)
-    {
+    private function arrayToString($data){
         $str = '';
         foreach ($data as $list) {
             if (is_array($list)) {
@@ -48,14 +46,17 @@ class Common{
      * @param array $data
      * @return string
      */
-    public function encryption($data)
-    {
-        $signString = $this->getSignString($data);
-        $privKeyId = openssl_pkey_get_private($this->private_key);
-        $signature = '';
-        openssl_sign($signString, $signature, $privKeyId, OPENSSL_ALGO_MD5);
-        openssl_free_key($privKeyId);
-        return base64_encode($signature);
+    public function encryption($data){
+        try {
+            $signString = $this->getSignString($data);
+            $privKeyId = openssl_pkey_get_private($this->private_key);
+            $signature = '';
+            openssl_sign($signString, $signature, $privKeyId, OPENSSL_ALGO_MD5);
+            openssl_free_key($privKeyId);
+            return base64_encode($signature);
+        }catch (\Exception $e){
+            return false;
+        }
     }
 
     /**
@@ -64,15 +65,19 @@ class Common{
      * @return bool
      */
     public function checkSignature($data){
-        $sign = $data['sign'] ?? '';
-        if(!$sign)
-            return false;
+        try {
+            $sign = $data['sign'] ?? '';
+            if (!$sign)
+                return false;
 
-        $toSign = self::getSignString($data);
-        $publicKeyId = openssl_pkey_get_public(file_get_contents($this->platform_public_key));
-        $result = openssl_verify($toSign, base64_decode($sign), $publicKeyId, OPENSSL_ALGO_MD5);
-        openssl_free_key($publicKeyId);
-        return $result === 1 ? true : false;
+            $toSign = self::getSignString($data);
+            $publicKeyId = openssl_pkey_get_public(file_get_contents($this->platform_public_key));
+            $result = openssl_verify($toSign, base64_decode($sign), $publicKeyId, OPENSSL_ALGO_MD5);
+            openssl_free_key($publicKeyId);
+            return $result === 1 ? true : false;
+        }catch (\Exception $e){
+            return false;
+        }
     }
 
     /**
@@ -83,8 +88,7 @@ class Common{
      * @param array $header
      * @return false|array
      */
-    function curl($url, $data = [], $type = 'POST', $header = ["Content-Type:application/json;charset=utf-8"])
-    {
+    function curl($url, $data = [], $type = 'POST', $header = ["Content-Type:application/json;charset=utf-8"]){
         // 合并请求参数，并生成sign
         $data = array_merge($this->config, $data);
         $data['sign'] = $this->encryption($data);
