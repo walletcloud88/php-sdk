@@ -1,0 +1,20 @@
+{
+  "name": "walletcloud88/phpsdk",
+  "description": "php open-api",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "JZ浩",
+      "email": "walletcloud88@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "phpsdk\\": "src"
+    }
+  }
+}
