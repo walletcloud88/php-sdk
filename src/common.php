@@ -5,7 +5,7 @@ function getSignString($data){
     reset($data);
     $pairs = array();
     foreach ($data as $k => $v) {
-        if (is_array($v)) $v = self::arrayToString($v);
+        if (is_array($v)) $v = arrayToString($v);
         $pairs[] = "$k=$v";
     }
     return implode('&', $pairs);
@@ -15,7 +15,7 @@ function arrayToString($data){
     $str = '';
     foreach ($data as $list) {
         if (is_array($list)) {
-            $str .= self::arrayToString($list);
+            $str .= arrayToString($list);
         } else {
             $str .= $list;
         }

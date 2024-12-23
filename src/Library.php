@@ -71,6 +71,7 @@ class Library
     public function curl($data, $url){
         try {
             $url = $this->host . $url;
+            $data = array_merge($this->config, $data);
             // 获取sign
             $data['sign'] = $this->encryption($data);
             $result = curl($url, $data);
