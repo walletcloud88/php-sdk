@@ -12,27 +12,29 @@ class Library
         'lang' => 'cn',                 // 默认为cn，仅支持，cn - 中文、en - 英文
 
         // 自己的私钥，对应公钥需要绑定至商户后台
-        'private_key' => '-----BEGIN PRIVATE KEY-----
-xxx
-xxx
------END PRIVATE KEY-----',
+        'private_key' => '',
 
         // 商户的公钥，用于响应数据验签
-        'platform_public_key' => '-----BEGIN PUBLIC KEY-----
-xxx
-xxx
------END PUBLIC KEY-----',
+        'platform_public_key' => '',
     ];
-
-    private $_class;
+    
+    public $host;
+    public $private_key;
+    public $platform_public_key;
 
     /**
-     * Pay constructor.
+     * constructor.
      * @param array $config
      */
     public function __construct(array $config = [])
     {
         $this->config = array_merge($this->config, $config);
+
+        $this->host = $config['host'] ?? '';
+        $this->private_key = $config['private_key'] ?? '';
+        $this->platform_public_key = $config['platform_public_key'] ?? '';
+        unset($this->config['host'], $this->config['private_key'], $this->config['platform_public_key']);
+        
         // 默认时间戳
         if(!$this->config['time']){
             $this->config['time'] = time();
@@ -40,27 +42,42 @@ xxx
     }
 
     /**
-     * 指定操作类
-     * @param string $name
-     * @return ClassInterface
+     * 获取签名sign
+     * @param $data
+     * @return false|string
      */
-    public function _class($name = 'open')
-    {
-        return $this->_class = $this->createClass($name);
+    public function encryption($data){
+        $data = array_merge($this->config, $data);
+        return encryption($data, $this->private_key);
     }
 
     /**
-     * 创建操作网关
-     * @param string $gateway
-     * @return mixed
+     * 验证sign是否有效
+     * @param $data
+     * @return bool
      */
-    protected function createClass($name)
-    {
-        if (!file_exists(__DIR__ . '/module/'. ucfirst($name) . '.php')) {
-            throw new \Exception("Class [$name] is not supported.");
-        }
-        $gateway_class = __NAMESPACE__ . '\\module\\' . ucfirst($name) ;
+    public function checkSignature($data){
+        return checkSignature($data, $this->platform_public_key);
+    }
 
-        return new $gateway_class($this->config);
+    /**
+     * 调用接口（此接口，需根据文档对应要求，将对应数据进行验签）
+     * @param array $data 文档对应传参
+     * @param string $url 接口相对路由，例如：rate/index
+     *
+     * @return json
+     * @throws \Exception
+     */
+    public function curl($data, $url){
+        try {
+            $url = $this->host . $url;
+            // 获取sign
+            $data['sign'] = $this->encryption($data);
+            $result = curl($url, $data);
+
+            return $result;
+        }catch (\Exception $e){
+            throw new \Exception('Request exception');
+        }
     }
 }
