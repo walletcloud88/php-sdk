@@ -14,7 +14,7 @@
   },
   "autoload": {
     "psr-4": {
-      "message\\": "src"
+      "phpsdk\\": "src"
     },
     "files": [
       "src/common.php"
