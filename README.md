@@ -1,3 +1,8 @@
+### composer包安装
+```
+composer require walletcloud88/phpsdk
+```
+
 ### 基础参数配置
 ```
 // 基础配置，包括公共传参
